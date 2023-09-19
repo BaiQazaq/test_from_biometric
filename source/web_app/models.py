@@ -21,16 +21,5 @@ class People(models.Model):
         self.is_deleted = True
         self.save()
 
-    # def age_count (self):
-    #     born_year_str = self.inn[0:2]
-    #     born_year = int(born_year_str)
-    #     current_year = int(datetime.now().year)
-    #     age = current_year - born_year
-    #     if age > 2000:
-    #         age = age - 2000
-    #         self.save()
-    #     elif 1900 < age < 2000:
-    #         age = age - 1900
-    #         self.save()
         
             

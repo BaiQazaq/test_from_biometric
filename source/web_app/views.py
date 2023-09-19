@@ -16,9 +16,9 @@ class PeopleView(APIView):
         inn = str(inn)
         if len(inn) < 12:
             try:
-                people = People.objects.all()
+                people = People.objects.all().exclude(is_deleted = True)
                 serializer = PeopleSerializer(people, many=True)
-                return Response(serializer.data)
+                return Response(serializer.data, status=200)
             except Exception as e:
                 error = type(e).__name__
                 print(error)
@@ -26,8 +26,7 @@ class PeopleView(APIView):
             try:
                 person = People.objects.get(inn=inn)
                 serializer = PeopleSerializer(person)
-                print("SERIAL", serializer, "====", serializer.data)
-                return Response(serializer.data)
+                return Response(serializer.data, status=200)
 
             except Exception as e:
                 return Response({"error": "Object does not exists"})
@@ -75,15 +74,23 @@ class PeopleView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        return Response({"post": serializer.data})
+        return Response({"post": serializer.data}, status=200)
 
-        # person = People.objects.get(inn = kwargs['inn'])
-        # serializer = PeopleSerializer(data=person.__dict__)
-        # if serializer.is_valid():
-        #     person.delete()
-        #     return Response(person.pk, status=204)
-        # else:
-        #     return Response(serializer.errors, status=400)
+    
+    def delete(self, request, *args, **kwargs):
+        inn = kwargs.get("pk", None)
+        inn = str(inn)
+        if not inn:
+            return Response({"error": "Method DELETE not allowed"})
+        try:
+            person = People.objects.get(inn = inn)
+            serializer = PeopleSerializer(data=person.__dict__)
+            print("DELETE", person, "+++++", serializer)
+            if serializer.is_valid():
+                person.delete()
+                return Response(person.inn, status=204)
+        except:
+            return Response(serializer.errors, status=400)
         
     
 
