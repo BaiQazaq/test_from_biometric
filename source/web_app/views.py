@@ -11,11 +11,28 @@ from web_app.serializer import PeopleSerializer
 
 class PeopleView(APIView):
 
-    def get(self, request):
-        people = People.objects.all()
-        serializer = PeopleSerializer(people, many=True)
-        print("++++++++++",serializer)
-        return Response(serializer.data)
+    def get(self, request, **kwargs):
+        inn = kwargs.get("pk", None)
+        inn = str(inn)
+        if len(inn) < 12:
+            try:
+                people = People.objects.all()
+                serializer = PeopleSerializer(people, many=True)
+                return Response(serializer.data)
+            except Exception as e:
+                error = type(e).__name__
+                print(error)
+        elif len(inn) == 12:  
+            try:
+                person = People.objects.get(inn=inn)
+                serializer = PeopleSerializer(person)
+                print("SERIAL", serializer, "====", serializer.data)
+                return Response(serializer.data)
+
+            except Exception as e:
+                return Response({"error": "Object does not exists"})
+        else:
+            print('Somthing wrong')
     
     @staticmethod
     def age_count (inn):
@@ -38,6 +55,36 @@ class PeopleView(APIView):
         )
        
         return Response({'post': model_to_dict(new_man)})
+    
+    
+    def patch(self, request, *args, **kwargs):
+        inn = kwargs.get("pk", None)
+        inn = str(inn)
+        if not inn:
+            return Response({"error": "Method PATCH not allowed"})
+        
+        try:
+            
+            instance = People.objects.get(inn=inn)
+            print("INSTANCE",instance)
+            print("REQUEST+++", request.data)
+        except:
+            return Response({"error": "Object does not exists"})
+        print("+"*5, request.data)
+        serializer = PeopleSerializer(data=request.data, instance=instance)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response({"post": serializer.data})
+
+        # person = People.objects.get(inn = kwargs['inn'])
+        # serializer = PeopleSerializer(data=person.__dict__)
+        # if serializer.is_valid():
+        #     person.delete()
+        #     return Response(person.pk, status=204)
+        # else:
+        #     return Response(serializer.errors, status=400)
+        
     
 
         
