@@ -4,10 +4,10 @@ from rest_framework import status
 from django.forms.models import model_to_dict
 from django.shortcuts import render
 from datetime import datetime
+# from rest_framework.pagination import LimitOffsetPagination
+from django.core.paginator import Paginator
 from web_app.models import People
 from web_app.serializer import PeopleSerializer
-
-# Create your views here.
 
 class PeopleView(APIView):
 
@@ -17,7 +17,13 @@ class PeopleView(APIView):
         if len(inn) < 12:
             try:
                 people = People.objects.all().exclude(is_deleted = True)
-                serializer = PeopleSerializer(people, many=True)
+                
+                page_number = self.request.query_params.get('page_number', 1)
+                page_size = self.request.query_params.get('page_size', 10)
+                paginator = Paginator(people, page_size)
+
+                serializer = PeopleSerializer(paginator.page(page_number), many=True, context={'request':request})
+
                 return Response(serializer.data, status=200)
             except Exception as e:
                 error = type(e).__name__
