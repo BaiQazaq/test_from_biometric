@@ -4,7 +4,6 @@ from rest_framework import status
 from django.forms.models import model_to_dict
 from django.shortcuts import render
 from datetime import datetime
-# from rest_framework.pagination import LimitOffsetPagination
 from django.core.paginator import Paginator
 from web_app.models import People
 from web_app.serializer import PeopleSerializer
@@ -53,13 +52,19 @@ class PeopleView(APIView):
 
     def post (self, request):
         age = PeopleView.age_count(request.data['inn'])
+        inn = request.data['inn']
+        print(inn, "+++++", request.data['inn'])
+        person_exists = People.objects.filter(inn=inn)
+        if person_exists:
+            return Response({"error": "Person with this inn exists"})
         new_man = People.objects.create(
             name = request.data['name'],
             inn = request.data['inn'],
             age = age
         )
-       
+    
         return Response({'post': model_to_dict(new_man)})
+        
     
     
     def patch(self, request, *args, **kwargs):
